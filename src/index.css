@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+    height: 100vh;
+    @apply dark:bg-[#2a2548] dark:text-white
+}
+#app {
+    height: 100vh;
+}
