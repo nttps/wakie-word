@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed, ref, onMounted, nextTick, watchEffect } from 'vue'
 import { layouts } from '../helper/layouts'
 import words from '../libs/words'
 import { statisticStore } from '../stores/statistic'
@@ -11,6 +11,12 @@ const keyboardData = reactive({
   keyShifted: layouts.Kedmanee.rowsShifted,
   shifted: false,
 })
+
+const currentKey = computed(() => (keyboardData.shifted ? keyboardData.keyShifted : keyboardData.key))
+const shiftedKey = computed(() => (keyboardData.shifted ? keyboardData.key : keyboardData.keyShifted))
+
+
+
 const statistic = statisticStore()
 const epochMs = 1642525200000
 const now = Date.now()
@@ -18,38 +24,114 @@ const msInDay = 86400000
 const dateIndex = Math.floor((now - epochMs) / msInDay)
 const attemptLimit = 6
 
+onMounted(async () => {
+  dict = (await import("../libs/dicts.json")).default// <div>
+})
+
 
 let input = ref('')
 let solution = words[dateIndex % words.length]
-let attempts = statistic.attempts(dateIndex) || []
-let validations = attempts.map((word) => validateWord(word, solution))
+let attempts = computed(() => statistic.getAttempts(dateIndex) || [])
+
+let validations = attempts.value.map((word) => validateWord(word, solution))
+
 let gameEnded = !!statistic.win(dateIndex) || !!statistic.lose(dateIndex)
 let attemptsContainer
 let copied = ref(false)
 let lose = ref(false)
 let win = ref(false)
+let dict= []
+let alertDelay = 500
 
-
-function submit() {
-  alert('Tadaaa ~~')
-}
-
-const attemptsLength = attempts.length
+const attemptsLength = attempts.value.length
 const solutionLength = splitWord(solution).length
-const currentKey = computed(() => (keyboardData.shifted ? keyboardData.keyShifted : keyboardData.key))
-const shiftedKey = computed(() => (keyboardData.shifted ? keyboardData.key : keyboardData.keyShifted))
-
 
 const alphabetStateMap = generateAlphabetStateMap(
-    [...currentKey.value, ...shiftedKey.value].flat(),
+    [...currentKey.value, ...shiftedKey.value].flat(),  
     validations.flat()
 )
 
 const splittedInput = computed(() => (splitWord(input.value)))
 
-statistic.addWord(dateIndex, attempts, win.value, lose.value)
+const validation = validations.slice(-1)[0]
+if (validation) {
+  // if all validation is correct
+  let allMatched = true
+  validation.forEach((v) => {
+    if (v.correct !== CharState.Correct) {
+      allMatched = false
+    }
+  })
+  if (allMatched) {
+    if (!gameEnded) {
+      const score = attemptLimit + 1 - validations.length
+      console.log({ score })
+    }
+
+    setTimeout(() => {
+      alert("คุณชนะแล้ว!")
+      gameEnded = true
+      statistic.getWin(dateIndex)
+    }, alertDelay)
+  } else if (attemptsLength >= attemptLimit) {
+    if (!gameEnded) {
+      const score = 0
+      console.log({ score })
+    }
+
+    setTimeout(() => {
+      alert(`คุณแพ้แล้ว คำประจำวันนี้คือ "${solution}"`)
+      gameEnded = true
+      statistic.getLose(dateIndex)
+    }, alertDelay)
+  }
+
+}
+
+
+async function submit() {
+
+
+  if (gameEnded) {
+    return
+  }
+
+  // Check if the length is valid
+  if (splitWord(input.value).length != solutionLength) {
+    alert("ใส่คำตอบเดี๋ยวนี้ !!~")
+    return
+  }
+
+    // Check if the word is in the dict
+  if (!wordExists(input.value)) {
+    alert("พิมพ์อะไรมา ?")
+    return
+  }
+
+
+  const validation = validateWord(input.value, solution)
+
+  statistic.updateData(dateIndex, input.value, win.value, lose.value)
+
+  validations = [...validations, validation]
+
+  input.value = ""
+
+  await nextTick()
+
+  document.getElementById('boardGame').scrollTop = document.getElementById('boardGame').scrollHeight
+
+}
+
+
+watchEffect(attempts.value, console.log(`watch`))
+
 
 function inputKey(alphabet) {
+
+  if (gameEnded) {
+      return
+  }
 
   if(!alphabet.match(/^[ก-๙]+$|⇧|⬅|ตกลง|Enter/u)) return false
 
@@ -71,13 +153,32 @@ function inputKey(alphabet) {
   }
 }
 
+function wordExists(input) {
+    if (words.includes(input)) {
+      return true
+    }
+    if (dict.includes(input)) {
+      return true
+    }
+
+    for (let i = 2; i < input.length - 1; i++) {
+      const left = input.slice(0, i)
+      const right = input.slice(i)
+      if (dict.includes(left) && dict.includes(right)) {
+        return true
+      }
+    }
+
+    return false
+}
+
 function isMobile() {
    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
      return true
    } else {
      return false
    }
- }
+}
 
 const colors = {
   [CharState.Correct]: "bg-green-500 border-green-500 text-white",
@@ -102,7 +203,7 @@ document.addEventListener("keydown", ({ key }) => {
 <template lang="">
   <div class="board-game">    
     <div class="board-continer">
-      <div class="board-inner">
+      <div id="boardGame" class="board-inner">
           <div v-for="i in attempts" :key="i" class="flex justify-center my-1">
             <div v-for="{ correct, char } , idx in validateWord(i, solution)" :key="idx" class="empty" :class="colors[correct] || 'bg-white'">{{ char }}</div>
           </div>
@@ -127,6 +228,7 @@ document.addEventListener("keydown", ({ key }) => {
         type="text"
         class="keyboard-type"
         placeholder="คลิกที่นี่เพื่อใช้คีย์บอร์ด"
+        :disable="!gameEnded"
         @keydown.prevent=""
       />
       <div class="keyboard">
@@ -138,8 +240,8 @@ document.addEventListener("keydown", ({ key }) => {
           
             <button
              v-for="alphabet, alphabetIndex in row"
-            :key="alphabetIndex"
-             :class="{ 'border-gray-500': '⇧⬅'.includes(alphabet) || alphabet === 'ตกลง' , 'button-enter': alphabet === 'ตกลง'}"
+              :key="alphabetIndex"
+              :class="[{ 'border-gray-500': '⇧⬅'.includes(alphabet) || alphabet === 'ตกลง' , 'button-enter': alphabet === 'ตกลง'}, colors[alphabetStateMap[alphabet]] ]"
               class="key"
               @click="inputKey(alphabet)"
 
@@ -153,6 +255,7 @@ document.addEventListener("keydown", ({ key }) => {
               <!-- Inverse character -->
               <div
                 v-if="currentKey[rowIndex][alphabetIndex] !== shiftedKey[rowIndex][alphabetIndex]"
+                :class="colors[alphabetStateMap[currentKey[rowIndex][alphabetIndex]]]"
                 class="shift"
               >
                 {{ shiftedKey[rowIndex][alphabetIndex] }}

@@ -72,7 +72,7 @@ export function validateWord(word: string, solution: string) {
           // Remove one matching char from solution, so that it cannot be matched again
           const idx1 = solutionSplitted.indexOf(char)
           const idx2 = solutionNormalizedSplitted.indexOf(cNormalized)
-          let correctChar
+          let correctChar: any
   
           if (idx1 !== -1) {
             correctChar = solutionSplitted[idx1]
