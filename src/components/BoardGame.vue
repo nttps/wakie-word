@@ -5,6 +5,9 @@ import words from '../libs/words'
 import { statisticStore } from '../stores/statistic'
 import { splitWord, validateWord, generateAlphabetStateMap, CharState } from '../helper/utils'
 
+import { openModal } from "jenesius-vue-modal"
+import Modal from './Modal.vue';
+
 const keyboardData = reactive({
   layouts,
   key: layouts.Kedmanee.rows,
@@ -25,23 +28,16 @@ const epochMs = Math.round(new Date('2022/02/22').getTime()) // 22 02 2022
 const now = Date.now()
 const msInDay = 86400000
 const dateIndex = Math.floor((now - epochMs) / msInDay)
-
-console.log(dateIndex)
 const attemptLimit = 6
-
-onMounted(async () => {
-  dict = (await import("../libs/dicts.json")).default// <div>
-})
-
 
 let input = ref('')
 let solution = words[dateIndex % words.length]
 let attempts = computed(() => statistic.getAttempts(dateIndex) || [])
 
-let validations = attempts.value.map((word) => validateWord(word, solution))
+let validations = reactive(attempts.value.map((word) => validateWord(word, solution)))
+const validation = validations.slice(-1)[0]
 
 let gameEnded = !!statistic.win(dateIndex) || !!statistic.lose(dateIndex)
-let attemptsContainer
 let copied = ref(false)
 let lose = ref(false)
 let win = ref(false)
@@ -51,46 +47,57 @@ let alertDelay = 500
 const attemptsLength = attempts.value.length
 const solutionLength = splitWord(solution).length
 
-const alphabetStateMap = generateAlphabetStateMap(
-    [...currentKey.value, ...shiftedKey.value].flat(),  
-    validations.flat()
-)
+
+const alphabetStateMap = ref([]);
+
+alphabetStateMap.value = generateAlphabetStateMap([...currentKey.value, ...shiftedKey.value].flat(),validations.flat())
 
 const splittedInput = computed(() => (splitWord(input.value)))
 
-const validation = validations.slice(-1)[0]
-if (validation) {
-  // if all validation is correct
-  let allMatched = true
-  validation.forEach((v) => {
-    if (v.correct !== CharState.Correct) {
-      allMatched = false
-    }
-  })
-  if (allMatched) {
-    if (!gameEnded) {
-      const score = attemptLimit + 1 - validations.length
-      console.log({ score })
+
+
+onMounted(async () => {
+  dict = (await import("../libs/dicts.json")).default// <div> 
+  valid(validation, validations)
+  
+})
+
+
+function valid(validation, validations) {
+
+  if (validation) {
+    // if all validation is correct
+    let allMatched = true
+    validation.forEach((v) => {
+      if (v.correct !== CharState.Correct) {
+        allMatched = false
+      }
+    })
+    if (allMatched) {
+      if (!gameEnded) {
+        const score = attemptLimit + 1 - validations.length
+        console.log({ score })
+      }
+  
+      setTimeout(() => {
+        showModal("คุณชนะแล้ว!")
+        gameEnded = true
+        statistic.getWin(dateIndex)
+      }, alertDelay)
+    } else if (attemptsLength >= attemptLimit) {
+      if (!gameEnded) {
+        const score = 0
+        console.log({ score })
+      }
+
+      setTimeout(() => {
+        showModal(`คุณแพ้แล้ว คำประจำวันนี้คือ "${solution}"`)
+        gameEnded = true
+        statistic.getLose(dateIndex)
+      }, alertDelay)
     }
 
-    setTimeout(() => {
-      alert("คุณชนะแล้ว!")
-      gameEnded = true
-      statistic.getWin(dateIndex)
-    }, alertDelay)
-  } else if (attemptsLength >= attemptLimit) {
-    if (!gameEnded) {
-      const score = 0
-      console.log({ score })
-    }
-
-    setTimeout(() => {
-      alert(`คุณแพ้แล้ว คำประจำวันนี้คือ "${solution}"`)
-      gameEnded = true
-      statistic.getLose(dateIndex)
-    }, alertDelay)
   }
-
 }
 
 async function submit() {
@@ -101,23 +108,25 @@ async function submit() {
 
   // Check if the length is valid
   if (splitWord(input.value).length != solutionLength) {
-    alert("ใส่คำตอบเดี๋ยวนี้ !!~")
+    showModal("ใส่คำตอบเดี๋ยวนี้ !!~")
     return
   }
 
     // Check if the word is in the dict
   if (!wordExists(input.value)) {
-    alert("พิมพ์อะไรมา ?")
+    showModal("พิมพ์อะไรมา ?")
     return
   }
 
 
   const validation = validateWord(input.value, solution)
-
   statistic.updateData(dateIndex, input.value, win.value, lose.value)
 
-  validations = [...validations, validation]
+  validations = attempts.value.map((word) => validateWord(word, solution))
 
+  alphabetStateMap.value = generateAlphabetStateMap([...currentKey.value, ...shiftedKey.value].flat(),validations.flat())
+
+  valid(validation, validations)
   input.value = ""
 
   await nextTick()
@@ -126,8 +135,15 @@ async function submit() {
 
 }
 
+function showModal(title) {
+  openModal(Modal, {
+      title: title
+  });
+}
 
-watchEffect(attempts.value, console.log(`watch`))
+watchEffect(attempts.value, console.log(`attempts`))
+watchEffect(alphabetStateMap, console.log(`alphabetStateMap`))
+
 
 
 function inputKey(alphabet) {
@@ -184,10 +200,10 @@ function isMobile() {
 }
 
 const colors = {
-  [CharState.Correct]: "bg-green-500 border-green-500 text-white",
-  [CharState.OutOfPlace]: "bg-yellow-500 border-yellow-500 text-white",
-  [CharState.Wrong]: "bg-gray-500 border-gray-500 text-white dark:bg-gray-700 dark:text-white",
-  [CharState.NotUsed]: "bg-white text-black dark:bg-gray-500 dark:text-white",
+  [CharState.Correct]: "bg-green-500 border-green-500",
+  [CharState.OutOfPlace]: "bg-yellow-500 border-yellow-500",
+  [CharState.Wrong]: "bg-gray-500 border-gray-500 dark:bg-gray-700",
+  [CharState.NotUsed]: "bg-white dark:bg-gray-500",
 }
 
 document.addEventListener("keydown", ({ key }) => {
@@ -211,7 +227,7 @@ document.addEventListener("keydown", ({ key }) => {
             <div v-for="{ correct, char } , idx in validateWord(i, solution)" :key="idx" class="empty" :class="colors[correct] || 'bg-white'">{{ char }}</div>
           </div>
 
-          <div v-if="!gameEnded" class="flex justify-center my-1">
+          <div class="flex justify-center my-1">
             <div
     v-for="(_, i ) in new Array(solutionLength).fill(0)" :key="i"
                   class="empty"
@@ -219,7 +235,7 @@ document.addEventListener("keydown", ({ key }) => {
                   {{ splittedInput[i] || "" }}
                 </div>
           </div>
-          <div v-for="v, i in new Array(Math.max(0, attemptLimit - attempts.length - 1))" :key="i" class="flex justify-center my-1">
+          <div v-for="v, i in new Array(Math.max(0, attemptLimit - attempts.length - 1))" :key="i" class="flex justify-center my-1" >
             <div v-for="_ in new Array(solutionLength).fill(0)" :key="_" class="empty" />
           </div>
       </div>
@@ -244,7 +260,7 @@ document.addEventListener("keydown", ({ key }) => {
             <button
              v-for="alphabet, alphabetIndex in row"
               :key="alphabetIndex"
-              :class="[{ 'border-gray-500': '⇧⬅'.includes(alphabet) || alphabet === 'ตกลง' , 'button-enter': alphabet === 'ตกลง'}, colors[alphabetStateMap[alphabet]] ]"
+              :class="[{'border-gray-500': '⇧⬅'.includes(alphabet) || alphabet === 'ตกลง' , 'button-enter': alphabet === 'ตกลง'}, colors[alphabetStateMap[alphabet]] ]"
               class="key"
               @click="inputKey(alphabet)"
 
@@ -269,6 +285,7 @@ document.addEventListener("keydown", ({ key }) => {
     </div>
   </div>
 </template>
+
 
 <style lang="postcss">
   .board-game {

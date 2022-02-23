@@ -2,6 +2,7 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
 import BoardGame from './components/BoardGame.vue'
+import { container as ModalContainer } from "jenesius-vue-modal"
 </script>
 
 <template>
@@ -9,7 +10,9 @@ import BoardGame from './components/BoardGame.vue'
       <header> WAKIE WORD</header>
       <BoardGame />
       <footer> FOOTER </footer>
+      <ModalContainer />
   </main>
+
 </template>
 
 <style lang="postcss">
