@@ -18,10 +18,15 @@ const shiftedKey = computed(() => (keyboardData.shifted ? keyboardData.key : key
 
 
 const statistic = statisticStore()
-const epochMs = 1642525200000
+
+
+
+const epochMs = Math.round(new Date('2022/02/22').getTime()) // 22 02 2022
 const now = Date.now()
 const msInDay = 86400000
 const dateIndex = Math.floor((now - epochMs) / msInDay)
+
+console.log(dateIndex)
 const attemptLimit = 6
 
 onMounted(async () => {
@@ -88,9 +93,7 @@ if (validation) {
 
 }
 
-
 async function submit() {
-
 
   if (gameEnded) {
     return
