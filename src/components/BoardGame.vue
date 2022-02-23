@@ -273,7 +273,7 @@ document.addEventListener("keydown", ({ key }) => {
     height: calc(100vh - 112px);
   }
   .board-continer {
-    @apply grow items-center justify-center overflow-y-auto flex
+    @apply items-center justify-center overflow-y-auto
   }
 
   .keyboard {
