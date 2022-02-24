@@ -46,7 +46,7 @@ export function initData() {
     let dict= []
 
     onMounted(async () => {
-        dict = (await import("../libs/dicts.json")).default// <div> 
+        dict = (await import("../../libs/dicts.json")).default// <div> 
     })
       
 

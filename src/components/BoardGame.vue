@@ -281,7 +281,7 @@ document.addEventListener("keydown", ({ key }) => {
       @apply absolute top-1 left-1 border-solid rounded text-sm leading-4 p-0.5 w-4
   }
   .empty {
-    @apply w-12 h-12 md:w-14 md:h-14 placeholder:border-solid border-2 flex items-center justify-center mx-0.5 text-2xl md:text-3xl font-bold text-black rounded dark:bg-[#211e34] dark:text-white
+    @apply w-12 h-12 md:w-14 md:h-14 placeholder:border-solid border-2 flex items-center justify-center mx-0.5 text-2xl md:text-3xl font-bold rounded dark:bg-[#211e34] dark:text-white
   }
  
 </style>
