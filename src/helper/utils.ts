@@ -11,6 +11,13 @@ const emojiColors = {
     [CharState.Wrong]: "⬜",
 }
 
+export const colors = {
+  [CharState.Correct]: "bg-green-500 border-green-500 text-white",
+  [CharState.OutOfPlace]: "bg-yellow-500 border-yellow-500 text-white",
+  [CharState.Wrong]: "bg-gray-500 border-gray-500 text-white dark:bg-gray-700 dark:text-white",
+  [CharState.NotUsed]: "bg-white text-black dark:bg-gray-500 dark:text-white",
+}
+
 export function normalizeWord(word: string) {
     return word.replace(/[^ก-ฮใเแโไาำะๆฯฤาa-zA-Z]/g, "")
 }

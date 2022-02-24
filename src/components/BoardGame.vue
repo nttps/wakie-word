@@ -1,67 +1,25 @@
 <script setup>
-import { reactive, computed, ref, onMounted, nextTick, watchEffect } from 'vue'
-import { layouts } from '../helper/layouts'
+import { reactive, ref, onMounted, nextTick, watchEffect } from 'vue'
 import words from '../libs/words'
-import { statisticStore } from '../stores/statistic'
-import { splitWord, validateWord, generateAlphabetStateMap, CharState } from '../helper/utils'
-
+import { splitWord, validateWord, generateAlphabetStateMap, CharState, colors } from '../helper/utils'
+import { setupKeyboard, initData } from '../libs/api/setupKeyboard'
 import { openModal } from "jenesius-vue-modal"
 import Modal from './Modal.vue';
 
-const keyboardData = reactive({
-  layouts,
-  key: layouts.Kedmanee.rows,
-  keyShifted: layouts.Kedmanee.rowsShifted,
-  shifted: false,
-})
+const { keyboardData, currentKey, shiftedKey } = setupKeyboard()
 
-const currentKey = computed(() => (keyboardData.shifted ? keyboardData.keyShifted : keyboardData.key))
-const shiftedKey = computed(() => (keyboardData.shifted ? keyboardData.key : keyboardData.keyShifted))
+const { dateIndex, solution, statistic, attempts, gameEnded, input, lose, win, splittedInput, solutionLength, dict } = initData()
 
-
-
-const statistic = statisticStore()
-
-
-
-const epochMs = Math.round(new Date('2022/02/22').getTime()) // 22 02 2022
-const now = Date.now()
-const msInDay = 86400000
-const dateIndex = Math.floor((now - epochMs) / msInDay)
 const attemptLimit = 6
-
-let input = ref('')
-let solution = words[dateIndex % words.length]
-let attempts = computed(() => statistic.getAttempts(dateIndex) || [])
+const attemptsLength = attempts.value.length
 
 let validations = reactive(attempts.value.map((word) => validateWord(word, solution)))
 const validation = validations.slice(-1)[0]
-
-let gameEnded = !!statistic.win(dateIndex) || !!statistic.lose(dateIndex)
-let copied = ref(false)
-let lose = ref(false)
-let win = ref(false)
-let dict= []
-let alertDelay = 500
-
-const attemptsLength = attempts.value.length
-const solutionLength = splitWord(solution).length
-
-
+let alertDelay = 1500
 const alphabetStateMap = ref([]);
-
 alphabetStateMap.value = generateAlphabetStateMap([...currentKey.value, ...shiftedKey.value].flat(),validations.flat())
 
-const splittedInput = computed(() => (splitWord(input.value)))
-
-
-
-onMounted(async () => {
-  dict = (await import("../libs/dicts.json")).default// <div> 
-  valid(validation, validations)
-  
-})
-
+const copied = ref(false)
 
 function valid(validation, validations) {
 
@@ -74,25 +32,25 @@ function valid(validation, validations) {
       }
     })
     if (allMatched) {
-      if (!gameEnded) {
+      if (!gameEnded.value) {
         const score = attemptLimit + 1 - validations.length
         console.log({ score })
       }
   
       setTimeout(() => {
         showModal("คุณชนะแล้ว!")
-        gameEnded = true
+        gameEnded.value = true
         statistic.getWin(dateIndex)
       }, alertDelay)
     } else if (attemptsLength >= attemptLimit) {
-      if (!gameEnded) {
+      if (!gameEnded.value) {
         const score = 0
         console.log({ score })
       }
 
       setTimeout(() => {
         showModal(`คุณแพ้แล้ว คำประจำวันนี้คือ "${solution}"`)
-        gameEnded = true
+        gameEnded.value = true
         statistic.getLose(dateIndex)
       }, alertDelay)
     }
@@ -100,9 +58,13 @@ function valid(validation, validations) {
   }
 }
 
+onMounted(async () => {
+  valid(validation, validations)
+})
+
 async function submit() {
 
-  if (gameEnded) {
+  if (gameEnded.value) {
     return
   }
 
@@ -144,11 +106,9 @@ function showModal(title) {
 watchEffect(attempts.value, console.log(`attempts`))
 watchEffect(alphabetStateMap, console.log(`alphabetStateMap`))
 
-
-
 function inputKey(alphabet) {
 
-  if (gameEnded) {
+  if (gameEnded.value) {
       return
   }
 
@@ -197,13 +157,6 @@ function isMobile() {
    } else {
      return false
    }
-}
-
-const colors = {
-  [CharState.Correct]: "bg-green-500 border-green-500",
-  [CharState.OutOfPlace]: "bg-yellow-500 border-yellow-500",
-  [CharState.Wrong]: "bg-gray-500 border-gray-500 dark:bg-gray-700",
-  [CharState.NotUsed]: "bg-white dark:bg-gray-500",
 }
 
 document.addEventListener("keydown", ({ key }) => {
@@ -274,7 +227,7 @@ document.addEventListener("keydown", ({ key }) => {
               <!-- Inverse character -->
               <div
                 v-if="currentKey[rowIndex][alphabetIndex] !== shiftedKey[rowIndex][alphabetIndex]"
-                :class="colors[alphabetStateMap[currentKey[rowIndex][alphabetIndex]]]"
+                :class="colors[alphabetStateMap[shiftedKey[rowIndex][alphabetIndex]]]"
                 class="shift"
               >
                 {{ shiftedKey[rowIndex][alphabetIndex] }}
@@ -289,7 +242,7 @@ document.addEventListener("keydown", ({ key }) => {
 
 <style lang="postcss">
   .board-game {
-    @apply w-full flex flex-col;
+    @apply w-full flex flex-col justify-between;
     height: calc(100vh - 112px);
   }
   .board-continer {
@@ -297,11 +250,11 @@ document.addEventListener("keydown", ({ key }) => {
   }
 
   .keyboard {
-    @apply w-full my-4 px-1
+    @apply w-full my-4 
   }
 
   .keyboard-container {
-    @apply mx-auto w-full max-w-2xl
+    @apply px-4 w-full max-w-2xl mx-auto
   }
   .keyboard-type {
     @apply w-full sm:w-[400px] block border mb-1 px-6 py-2 mx-auto text-center dark:bg-gray-500 dark:text-white dark:placeholder:text-white
@@ -328,7 +281,7 @@ document.addEventListener("keydown", ({ key }) => {
       @apply absolute top-1 left-1 border-solid rounded text-sm leading-4 p-0.5 w-4
   }
   .empty {
-    @apply w-14 h-14 placeholder:border-solid border-2 flex items-center justify-center mx-0.5 text-3xl font-bold text-black rounded dark:bg-[#211e34] dark:text-white
+    @apply w-12 h-12 md:w-14 md:h-14 placeholder:border-solid border-2 flex items-center justify-center mx-0.5 text-2xl md:text-3xl font-bold text-black rounded dark:bg-[#211e34] dark:text-white
   }
  
 </style>
