@@ -2,21 +2,19 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
 import BoardGame from './components/BoardGame.vue'
+import HeaderLayout from './components/HeaderLayout.vue'
 import { container as ModalContainer } from "jenesius-vue-modal"
+import FooterLayout from './components/FooterLayout.vue';
 </script>
 
 <template>
-  <main class="container mx-auto h-screen flex flex-col items-center">
-      <header> WAKIE WORD</header>
+    <HeaderLayout />
+    <main class="container mx-auto flex flex-col items-center">
       <BoardGame />
-      <footer> FOOTER </footer>
-      <ModalContainer />
-  </main>
-
+    </main>
+    <FooterLayout />
+    <ModalContainer />
 </template>
 
 <style lang="postcss">
-  header, footer {
-    @apply py-4
-  }
 </style>

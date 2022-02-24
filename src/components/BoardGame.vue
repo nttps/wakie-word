@@ -242,8 +242,8 @@ document.addEventListener("keydown", ({ key }) => {
 
 <style lang="postcss">
   .board-game {
-    @apply w-full flex flex-col justify-between;
-    height: calc(100vh - 112px);
+    @apply w-full flex flex-col justify-between pt-4;
+    height: calc(100vh - 96px);
   }
   .board-continer {
     @apply items-center justify-center overflow-y-auto
@@ -271,7 +271,7 @@ document.addEventListener("keydown", ({ key }) => {
       @apply relative px-1 m-0.5 h-16 flex-grow border-solid border-2 flex text-xl font-sans font-bold rounded text-black dark:text-white;
   }
   .keyboard .key.button-enter {
-    @apply w-14 md:w-24
+    @apply w-12 md:w-20
   }
   .keyboard .key .no-shift {
       @apply absolute bottom-2 right-1 p-0.5
