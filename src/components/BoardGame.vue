@@ -8,7 +8,15 @@ import Modal from './Modal.vue';
 
 const { keyboardData, currentKey, shiftedKey } = setupKeyboard()
 
-const { dateIndex, solution, statistic, attempts, gameEnded, input, lose, win, splittedInput, solutionLength, dict } = initData()
+const { dateIndex, solution, statistic, attempts, gameEnded, input, lose, win, splittedInput, solutionLength } = initData()
+
+let dict= []
+
+onMounted(async () => {
+  dict = (await import("../libs/dicts.json")).default
+})
+  
+
 
 const attemptLimit = 6
 const attemptsLength = attempts.value.length
@@ -133,6 +141,8 @@ function inputKey(alphabet) {
 }
 
 function wordExists(input) {
+
+  console.log(dict);
     if (dict.includes(input)) {
       return true
     }
@@ -140,8 +150,10 @@ function wordExists(input) {
       const left = input.slice(0, i)
       const right = input.slice(i)
 
+      console.log(left);
+      console.log(dict.includes(left));
      
-      if (dict.includes(left) && dict.includes(right)) {
+      if (dict.includes(left) || dict.includes(right)) {
 
         console.log('left' , left);
         console.log('right' , right);

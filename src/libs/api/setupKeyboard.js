@@ -43,12 +43,6 @@ export function initData() {
     const lose = ref(false)
     const win = ref(false)
 
-    let dict= []
-
-    onMounted(async () => {
-        dict = (await import("../../libs/dicts.json")).default// <div> 
-    })
-      
 
     return {
         solution,
@@ -62,7 +56,6 @@ export function initData() {
         lose,
         win,
         solutionLength,
-        dateIndex,
-        dict
+        dateIndex
     }
 }
