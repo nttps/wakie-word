@@ -7,7 +7,7 @@ export enum CharState {
   
 const emojiColors = {
     [CharState.Correct]: "🟩",
-    [CharState.OutOfPlace]: "🟨",
+    [CharState.OutOfPlace]: "🟧",
     [CharState.Wrong]: "⬜",
 }
 
@@ -134,4 +134,14 @@ export function generateAlphabetStateMap(
     })
   
     return map
+}
+
+export function getShareResults(attempts: Array<Array<Partial<{ correct: CharState }>>>) {
+  return attempts.map((attempt) => {
+    return attempt
+      .map(({ correct }) => {
+        return emojiColors[correct]
+      })
+      .join("")
+  })
 }

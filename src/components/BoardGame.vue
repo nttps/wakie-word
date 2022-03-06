@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref, onMounted, nextTick, watchEffect } from 'vue'
 import words from '../libs/words'
-import { splitWord, validateWord, generateAlphabetStateMap, CharState, colors } from '../helper/utils'
+import { splitWord, validateWord, generateAlphabetStateMap, CharState, colors, getShareResults } from '../helper/utils'
 import { setupKeyboard, initData } from '../libs/api/setupKeyboard'
 import { openModal } from "jenesius-vue-modal"
 import Modal from './Modal.vue';
@@ -27,7 +27,7 @@ let alertDelay = 1500
 const alphabetStateMap = ref([]);
 alphabetStateMap.value = generateAlphabetStateMap([...currentKey.value, ...shiftedKey.value].flat(),validations.flat())
 
-const copied = ref(false)
+
 
 function valid(validation, validations) {
 
@@ -141,31 +141,43 @@ function inputKey(alphabet) {
 }
 
 function wordExists(input) {
-
-  console.log(dict);
     if (dict.includes(input)) {
       return true
     }
     for (let i = 2; i < input.length - 1; i++) {
       const left = input.slice(0, i)
       const right = input.slice(i)
-
-      console.log(left);
-      console.log(dict.includes(left));
      
       if (dict.includes(left) || dict.includes(right)) {
 
-        console.log('left' , left);
-        console.log('right' , right);
         return true
       }
     }
 
-    // if (words.includes(input)) {
-    //   return true
-    // }
+    if (words.includes(input)) {
+      return true
+    }
 
     return false
+}
+
+
+const copied = ref(false)
+
+function copyResult() {
+
+  const results = getShareResults(validations)
+
+
+  const score = (lose.value ? "X" : `${results.length}`) + `/${attemptLimit}`
+
+  navigator.clipboard.writeText(`#Wakie Work ${dateIndex + 1} ${score}\n\n${results.join("\n")}`)
+
+  copied.value = true
+
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 
 function isMobile() {
@@ -252,7 +264,11 @@ document.addEventListener("keydown", ({ key }) => {
             </button>
         </div>
       </div>
+      <div v-if="gameEnded" class="flex justify-center"> 
+        <button class="btn-share" @click="copyResult">{{copied ? "แชร์แล้ว" : "แชร์"}}</button>
+      </div>
     </div>
+    
   </div>
 </template>
 
@@ -299,6 +315,10 @@ document.addEventListener("keydown", ({ key }) => {
   }
   .empty {
     @apply w-12 h-12 md:w-14 md:h-14 placeholder:border-solid border-2 flex items-center justify-center mx-0.5 text-2xl md:text-3xl font-bold rounded dark:bg-[#211e34] dark:text-white
+  }
+
+  .btn-share {
+    @apply text-center py-0.5 px-3 rounded border border-white cursor-pointer bg-white text-black hover:bg-transparent hover:text-white  active:bg-white active:text-black focus:outline-none focus:ring focus:bg-transparent focus:text-white focus:ring-amber-300
   }
  
 </style>
