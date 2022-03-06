@@ -171,7 +171,7 @@ function copyResult() {
 
   const score = (lose.value ? "X" : `${results.length}`) + `/${attemptLimit}`
 
-  navigator.clipboard.writeText(`#Wakie Word : https://wakie-word.vercel.app/ ${dateIndex + 1} ${score}\n\n${results.join("\n")}`)
+  navigator.clipboard.writeText(`#Wakie Word ${dateIndex + 1} ${score} : https://wakie-word.vercel.app/  \n\n${results.join("\n")}`)
 
   copied.value = true
 
