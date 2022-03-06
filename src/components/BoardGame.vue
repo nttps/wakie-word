@@ -133,20 +133,23 @@ function inputKey(alphabet) {
 }
 
 function wordExists(input) {
-    if (words.includes(input)) {
-      return true
-    }
     if (dict.includes(input)) {
       return true
     }
-
     for (let i = 2; i < input.length - 1; i++) {
       const left = input.slice(0, i)
       const right = input.slice(i)
+
+      console.log('left' , left);
+      console.log('right' , right);
       if (dict.includes(left) && dict.includes(right)) {
         return true
       }
     }
+
+    // if (words.includes(input)) {
+    //   return true
+    // }
 
     return false
 }
