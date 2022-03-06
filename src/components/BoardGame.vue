@@ -140,9 +140,11 @@ function wordExists(input) {
       const left = input.slice(0, i)
       const right = input.slice(i)
 
-      console.log('left' , left);
-      console.log('right' , right);
+     
       if (dict.includes(left) && dict.includes(right)) {
+
+        console.log('left' , left);
+        console.log('right' , right);
         return true
       }
     }
