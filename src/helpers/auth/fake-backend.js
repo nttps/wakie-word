@@ -3,7 +3,7 @@ import axios from 'axios';
 import { accountService } from '../../services';
 
 // array in local storage for accounts
-const accountsKey = 'vue-3-facebook-login-accounts';
+const accountsKey = 'wakie-word-facebook-accounts';
 
 
 let accounts = JSON.parse(localStorage.getItem(accountsKey)) || [];
@@ -45,12 +45,10 @@ export function fakeBackend() {
                             const { data } = response;
                             if (data.error) return unauthorized(data.error.message);
 
-                            console.log(data);
                             let account = accounts.find(x => x.facebookId === data.id);
                             if (!account) {
                                 // create new account if first time logging in
 
-                                console.log(data);
                                 account = {
                                     id: newAccountId(),
                                     facebookId: data.id,
