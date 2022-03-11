@@ -1,8 +1,8 @@
-import { reactive, computed, ref, onMounted } from 'vue'
-import { layouts } from '../../helper/layouts'
+import { reactive, computed, ref } from 'vue'
+import { layouts } from '../../helpers/layouts'
 import words from '../words'
 import { statisticStore } from '../../stores/statistic'
-import { splitWord, validateWord } from '../../helper/utils'
+import { splitWord, validateWord } from '../../helpers/utils'
 
 export function setupKeyboard() {
     const keyboardData = reactive({

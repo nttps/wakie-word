@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref, onMounted, nextTick, watchEffect } from 'vue'
 import words from '../libs/words'
-import { splitWord, validateWord, generateAlphabetStateMap, CharState, colors, getShareResults } from '../helper/utils'
+import { splitWord, validateWord, generateAlphabetStateMap, CharState, colors, getShareResults } from '../helpers/utils'
 import { setupKeyboard, initData } from '../libs/api/setupKeyboard'
 import { openModal } from "jenesius-vue-modal"
 import Modal from './Modal.vue';
@@ -276,7 +276,6 @@ document.addEventListener("keydown", ({ key }) => {
 <style lang="postcss">
   .board-game {
     @apply w-full flex flex-col justify-between pt-4;
-    height: calc(100vh - 96px);
   }
   .board-continer {
     @apply items-center justify-center overflow-y-auto
@@ -318,7 +317,7 @@ document.addEventListener("keydown", ({ key }) => {
   }
 
   .btn-share {
-    @apply text-center py-0.5 px-3 rounded border border-white cursor-pointer bg-white text-black hover:bg-transparent hover:text-white  active:bg-white active:text-black focus:outline-none focus:ring focus:bg-transparent focus:text-white focus:ring-amber-300
+    @apply text-center py-0.5 px-3 rounded border border-white cursor-pointer bg-white text-black hover:bg-transparent dark:hover:text-white  active:bg-white active:text-black focus:outline-none focus:ring focus:bg-transparent focus:text-white focus:ring-amber-300
   }
  
 </style>

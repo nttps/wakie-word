@@ -2,19 +2,23 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { useStorage } from '@vueuse/core'
 
-
-interface Store {
-    data: Record<string, State>
-}
-interface State {
+interface SubState {
     attempts: []
     win?: boolean
     lose?: boolean
 }
 
-let DATA: Store = {
-    data: {}
+interface State {
+    state: Record<string, SubState>
 }
+
+interface Store {
+    data: Record<string, State>
+}
+
+
+let DATA: Store
+
 
 export const statisticStore = defineStore('statistic', {
     state: () => ({
@@ -34,34 +38,20 @@ export const statisticStore = defineStore('statistic', {
     actions: {
         /**
          * Add word to the statistic
-         * @param {string} index
-         * @param {string} word
-         * @param {boolean} win
-         * @param {boolean} lose
-         */
-        updateData(index: string, word: string, win: boolean, lose: boolean) {
-
-            let data = this.getAttempts(index) || []
-
-            let attempts = [...data, word]
-            
-            this.data[index] = { attempts , win, lose }
-        },
-
-        /**
-         * Add word to the statistic
          * @param {string} state
          * @param {string} word
          * @param {boolean} win
          * @param {boolean} lose
          */
-         updateState(state: string, word: string, win: boolean, lose: boolean) {
+        updateSubState(stateIndex: number, subIndex: number, word: string, win: boolean, lose: boolean) {
 
-            let data = this.getAttempts(state) || []
+            let data = this.getSubstateAttempts(stateIndex) || []
 
             let attempts = [...data, word]
             
-            this.data[state] = { attempts , win, lose }
+            let state = this.data[stateIndex]
+            state[subIndex] = { attempts , win, lose }
+
         },
         getWin(index: string) {
             this.data[index].win = true
@@ -71,4 +61,3 @@ export const statisticStore = defineStore('statistic', {
         }
     },
 })
-

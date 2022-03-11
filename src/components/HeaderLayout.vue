@@ -1,5 +1,11 @@
 <script setup>
 import MenuProfile from './MenuProfile.vue';
+import { ref } from 'vue';
+import { accountService } from '../services';
+const account = ref(null);
+
+accountService.account.subscribe(x => account.value = x);
+
 </script>
 
 <template lang="">
@@ -7,8 +13,8 @@ import MenuProfile from './MenuProfile.vue';
       <!-- <div></div> -->
       <div>WAKIE WORD</div>
       <div class="flex items-center">
-        <!-- <menu-profile></menu-profile> -->
-         <a href="">Sign In</a>  
+        <menu-profile v-if="account"></menu-profile>
+        <a v-if="!account" href="#" @click="accountService.login">Sign In</a> 
       </div>
     </header>
 </template>

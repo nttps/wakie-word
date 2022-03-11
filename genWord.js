@@ -2,6 +2,7 @@
 
 const fs = require("fs")
 const path = require("path")
+const words = require("./src/libs/dicts.json")
 
 function wordsFilter(words, maxLength = 8) {
   return words.filter((word) => {
