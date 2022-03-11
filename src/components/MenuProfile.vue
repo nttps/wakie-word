@@ -21,7 +21,7 @@ accountService.account.subscribe(x => account.value = x);
             leave-class="opacity-100 scale-100"
             leave-to-class="opacity-0 scale-75"
         >
-            <div v-if="slotProps.open" class="origin-top-right absolute right-0 mt-2 w-64 dark:bg-[#2a2548] dark:text-white text-black border overflow-hidden rounded-lg shadow-md">
+            <div v-if="slotProps.open" class="origin-top-right absolute right-0 mt-2 w-64 bg-[#2a2548] text-white border overflow-hidden rounded-lg shadow-md">
                 <ul>
                     <li>
                         <router-link to="/profile" class="rounded-t-lg block px-4 py-3 hover:bg-gray-100 dark:hover:bg-amber-600">
