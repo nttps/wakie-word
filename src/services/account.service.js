@@ -20,8 +20,13 @@ export const accountService = {
 };
 
 async function login() {
-    // login with facebook then authenticate with the API to get a JWT auth token
-    const { authResponse } = await new Promise(FB.login);
+
+
+    const { authResponse } = await new Promise((resolve) => {
+        FB.login((response) => {
+            resolve(response);
+        }, { scope: 'email' });
+    });
     if (!authResponse) return;
 
     await apiAuthenticate(authResponse.accessToken);
@@ -29,6 +34,7 @@ async function login() {
     // get return url from query parameters or default to home page
     const returnUrl = router.currentRoute.value.query['returnUrl'] || '/';
     router.push(returnUrl);
+    
 }
 
 async function apiAuthenticate(accessToken) {
